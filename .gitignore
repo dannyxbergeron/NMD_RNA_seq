@@ -4,8 +4,8 @@ logs/
 
 # Data folders
 data/references
-data/ref_test
-data/reads_test
+data/test_reference
+data/test_reads
 data/reads
 data/qc
 data/trimmed

@@ -1,20 +1,40 @@
 {
-    "datasets_lykke":
+    "datasets_test":
+    {
+        "HBR1": "HBR1",
+        "HBR2": "HBR2",
+        "HBR3": "HBR3",
+        "UHR1": "UHR1",
+        "UHR2": "UHR2",
+        "UHR3": "UHR3",
+    },
+    "datasets":
     {
         "SRR1275413.1": "ctrl",
-        "SRR1275413.1": "XRN1",
-        "SRR1275413.1": "SMG6-XRN1",
-        "SRR1275413.1": "UPF1-XRN1",
+        "SRR1275414.1": "XRN1",
+        "SRR1275415.1": "SMG6-XRN1",
+        "SRR1275416.1": "UPF1-XRN1",
     },
     "download":
     {
         "genome": "ftp://ftp.ensembl.org/pub/release-87/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz"
+    },
+    "path_test":
+    {
+        "annotation": "data/test_reference/chr22_with_ERCC92.gtf",
+        "genome": "data/test_reference/chr22_with_ERCC92.fa",
+        "transcriptome": "data/test_reference/transcriptome.fa",
+        "gene_name" : "data/test_reference/gene_name.txt",
+        "kallisto_index" : "data/test_reference/kallisto.idx",
+        "star_index" : "data/test_reference/star_index/"
     },
     "path":
     {
         "annotation": "data/references/human_ensembl_87_wo_dup_v3.BB_v3.gtf",
         "genome": "data/references/genome_87_primary.fa",
         "transcriptome": "data/references/transcriptome.fa",
-        "gene_name" : "data/references/gene_name.txt"
+        "gene_name" : "data/references/gene_name.txt",
+        "kallisto_index" : "data/references/kallisto.idx",
+        "star_index" : "data/reference/star_index/"
     }
 }
