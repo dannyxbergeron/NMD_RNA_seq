@@ -1,0 +1,20 @@
+{
+    "datasets_lykke":
+    {
+        "SRR1275413.1": "ctrl",
+        "SRR1275413.1": "XRN1",
+        "SRR1275413.1": "SMG6-XRN1",
+        "SRR1275413.1": "UPF1-XRN1",
+    },
+    "download":
+    {
+        "genome": "ftp://ftp.ensembl.org/pub/release-87/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz"
+    },
+    "path":
+    {
+        "annotation": "data/references/human_ensembl_87_wo_dup_v3.BB_v3.gtf",
+        "genome": "data/references/genome_87_primary.fa",
+        "transcriptome": "data/references/transcriptome.fa",
+        "gene_name" : "data/references/gene_name.txt"
+    }
+}

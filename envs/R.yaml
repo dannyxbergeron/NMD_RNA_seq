@@ -1,0 +1,7 @@
+channels:
+  - default
+  - bioconda
+  - conda-forge
+dependencies:
+  - r-base =3.3
+  - bioconductor-deseq2 =1.14.1
