@@ -15,14 +15,23 @@ for dataset in snakemake.input.datasets:
     data.set_index('target_id', inplace=True)
 
     for quant in quants:
-        _dict = data[quant].to_dict()
-        matrix[quant][id] = matrix[quant]['transcript'].map(_dict)
+        quant_type = ""
+        if 'tpm' in quant:
+            quant_type = 'tpm'
+        else:
+            quant_type = 'est_counts'
+
+        _dict = data[quant_type].to_dict()
+        matrix[quant][id] = matrix[quant_type]['transcript'].map(_dict)
 
 # Simplyfing to gene quantification
 for quant in quants:
-    matrix[quant].drop('transcript', axis=1, inplace=True)
-    matrix[quant] = matrix[quant].groupby('gene').sum()
-    matrix[quant].reset_index(inplace=True)
+    if 'transcript' not in quant:
+        matrix[quant].drop('transcript', axis=1, inplace=True)
+        matrix[quant] = matrix[quant].groupby('gene').sum()
+        matrix[quant].reset_index(inplace=True)
+    else:
+        matrix[quant].drop('gene', axis=1, inplace=True)
 
     # Write to file
     matrix[quant].to_csv(snakemake.output[quant], sep='\t', index=False)

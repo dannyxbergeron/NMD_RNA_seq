@@ -1,12 +1,12 @@
 {
     "datasets_test":
     {
-        "HBR1": "HBR1",
-        "HBR2": "HBR2",
-        "HBR3": "HBR3",
-        "UHR1": "UHR1",
-        "UHR2": "UHR2",
-        "UHR3": "UHR3",
+        "HBR1": "hbr1",
+        "HBR2": "hbr2",
+        "HBR3": "hbr3",
+        "UHR1": "uhr1",
+        "UHR2": "uhr2",
+        "UHR3": "uhr3",
     },
     "datasets":
     {
@@ -26,7 +26,8 @@
         "transcriptome": "data/test_reference/transcriptome.fa",
         "gene_name" : "data/test_reference/gene_name.txt",
         "kallisto_index" : "data/test_reference/kallisto.idx",
-        "star_index" : "data/test_reference/star_index/"
+        "star_index" : "data/test_reference/star_index/",
+        "chrNameLength" : "data/chrNameLength.txt"
     },
     "path":
     {
@@ -35,6 +36,7 @@
         "transcriptome": "data/references/transcriptome.fa",
         "gene_name" : "data/references/gene_name.txt",
         "kallisto_index" : "data/references/kallisto.idx",
-        "star_index" : "data/reference/star_index/"
+        "star_index" : "data/reference/star_index/",
+        "chrNameLength" : "data/chrNameLength.txt"
     }
 }

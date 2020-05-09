@@ -1,12 +1,22 @@
 configfile: "config.json"
 
 simple_id = list(config['datasets_test'].keys()) #CHANGED
+counts = ['est_counts', 'transcript_est_counts']
 
 rule all:
     input:
         tpm = "results/kallisto/tpm.tsv",
         est_counts = "results/kallisto/est_counts.tsv",
-        start_out = expand("logs/STAR/{id}.log", id=simple_id)
+        start_out = expand("logs/STAR/{id}.log", id=simple_id),
+        transcript_tpm = "results/kallisto/transcript_tpm.tsv",
+        transcript_est_counts = "results/kallisto/transcript_est_counts.tsv",
+        bedgraph = expand("results/CoCo/{id}.bedgraph", id=simple_id),
+        clean_bg = expand("results/CoCo/{id}.bw", id=simple_id),
+        counts = expand('results/kallisto/{counts}.tsv',
+                        counts=counts),
+        deseq_log = expand("logs/DESeq2/{counts}.log",
+                        counts=counts)
+
 
 
 # rule download_genome:
@@ -170,7 +180,9 @@ rule combine_gene_quantification:
         map = rules.generate_transcriptID_geneName.output.map
     output:
         tpm = "results/kallisto/tpm.tsv",
-        est_counts = "results/kallisto/est_counts.tsv"
+        est_counts = "results/kallisto/est_counts.tsv",
+        transcript_tpm = "results/kallisto/transcript_tpm.tsv",
+        transcript_est_counts = "results/kallisto/transcript_est_counts.tsv"
     conda:
         "envs/python.yaml"
     script:
@@ -183,7 +195,9 @@ rule star_index:
         fasta = config["path_test"]["genome"],
         gtf = config["path_test"]['annotation']
     output:
-        directory(config['path_test']['star_index'])
+        "logs/STAR/index.log"
+    params:
+        dir = config['path_test']['star_index']
     log:
         "logs/STAR/index.log"
     conda:
@@ -191,7 +205,7 @@ rule star_index:
     threads:
         1 #8 CHANGED
     shell:
-        "mkdir -p {output} && "
+        "mkdir -p {params.dir} && "
         "STAR --runThreadN {threads} "
         "--runMode genomeGenerate "
         "--genomeDir {output} "
@@ -209,9 +223,10 @@ rule star_alignReads:
         fq1 = rules.trimming.output.fq1,
         fq2 = rules.trimming.output.fq2
     output:
-        quant_dir = directory("results/STAR/{id}/")
+        bam = "results/STAR/{id}/Aligned.sortedByCoord.out.bam"
     params:
-        outdir = config['path_test']['star_index']
+        index = config['path_test']['star_index'],
+        output_dir = "results/STAR/{id}/"
     log:
         "logs/STAR/{id}.log"
     threads:
@@ -220,7 +235,7 @@ rule star_alignReads:
         "envs/star.yaml"
     shell:
         "STAR --runMode alignReads "
-        "--genomeDir {params.outdir} "
+        "--genomeDir {params.index} "
         "--readFilesIn {input.fq1} {input.fq2}  "
         "--runThreadN {threads} "
         "--readFilesCommand zcat "
@@ -229,10 +244,16 @@ rule star_alignReads:
         "--outStd Log "
         "--outSAMunmapped None "
         "--outSAMtype BAM SortedByCoordinate "
-        "--outFileNamePrefix {output.quant_dir} "
+        "--outFileNamePrefix {param.output_dir} "
         "--outFilterScoreMinOverLread 0.3 "
         "--outFilterMatchNminOverLread 0.3 "
         "--outFilterMultimapNmax 100 "
         "--winAnchorMultimapNmax 100 "
         "--alignEndsProtrude 5 ConcordantPair "
         "&> {log}"
+
+# include coco
+include: "rules/coco.smk"
+
+# include DESeq
+include: "rules/DESeq2.smk"

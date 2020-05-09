@@ -3,5 +3,6 @@ channels:
   - bioconda
   - conda-forge
 dependencies:
-  - r-base =3.3
-  - bioconductor-deseq2 =1.14.1
+  - bioconductor-deseq2 =1.26.0
+  - bioconductor-tximportdata =1.14.0
+  - bioconductor-tximport =1.14.0
