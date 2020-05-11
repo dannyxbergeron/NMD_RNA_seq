@@ -2,11 +2,7 @@
     "datasets_test":
     {
         "HBR1": "hbr1",
-        "HBR2": "hbr2",
-        "HBR3": "hbr3",
         "UHR1": "uhr1",
-        "UHR2": "uhr2",
-        "UHR3": "uhr3",
     },
     "datasets":
     {

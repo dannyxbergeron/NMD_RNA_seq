@@ -1,9 +1,6 @@
-import os
-
 configfile: "config.json"
 
-original_name = list(config['datasets'].keys())
-simple_id = list(config['datasets'].values())
+simple_id = list(config['datasets_test'].keys()) #CHANGED
 counts = ['est_counts', 'transcript_est_counts']
 
 rule all:
@@ -14,43 +11,31 @@ rule all:
         transcript_tpm = "results/kallisto/transcript_tpm.tsv",
         transcript_est_counts = "results/kallisto/transcript_est_counts.tsv",
         bedgraph = expand("results/CoCo/{id}.bedgraph", id=simple_id),
-        clean_bw = expand("results/CoCo/bigwig/{id}.bw", id=simple_id)
+        clean_bw = expand("results/CoCo/bigwig/{id}.bw", id=simple_id),
+        # DESeq2_genes = "logs/DESeq2/genes.log",
+        # DESeq2_transcripts = "logs/DESeq2/transcripts.log",
+        # rename = "logs/DESeq2/rename.tok"
 
 
-rule download_genome:
-    """ Downloads the genome from Ensembl FTP servers """
-    output:
-        genome = config['path']['genome']
-    params:
-        link = config['download']['genome']
-    shell:
-        "wget --quiet -O {output.genome}.gz {params.link} && "
-        "gzip -d {output.genome}.gz "
 
+# rule download_genome:
+#     """ Downloads the genome from Ensembl FTP servers """
+#     output:
+#         genome = config['path_test']['genome']
+#     params:
+#         link = config['download']['genome']
+#     shell:
+#         "wget --quiet -O {output.genome}.gz {params.link} && "
+#         "gzip -d {output.genome}.gz "
 
-rule rename_files:
-    input:
-        fastq = expand("data/reads/{original_name}_{pair}.fastq",
-                    original_name=original_name, pair=[1, 2])
-    output:
-        new_name = expand("data/reads/{id}_{pair}.fastq",
-                    id=simple_id, pair=[1, 2])
-    run:
-        for original, id in config['datasets'].items():
-            for num in [1, 2]:
-                old = "data/reads/{}_{}.fastq".format(original, num)
-                new_ = "data/reads/{}_{}.fastq".format(id, num)
-
-                os.rename(old, new_)
-                
 
 rule create_transcriptome:
     """ Uses gffread to generate a transcriptome """
     input:
-        genome = config['path']['genome'],
-        gtf = config['path']['annotation']
+        genome = config['path_test']['genome'],
+        gtf = config['path_test']['annotation']
     output:
-        seqs = config['path']['transcriptome']
+        seqs = config['path_test']['transcriptome']
     conda:
         "envs/gffread.yaml"
     shell:
@@ -63,9 +48,9 @@ rule generate_transcriptID_geneName:
     relationship
     """
     input:
-        gtf = config['path']['annotation']
+        gtf = config['path_test']['annotation']
     output:
-        map = config['path']['gene_name']
+        map = config['path_test']['gene_name']
     conda:
         "envs/python.yaml"
     script:
@@ -75,8 +60,8 @@ rule generate_transcriptID_geneName:
 rule trimming:
     """ Trims the FASTQ files using Trimmomatic """
     input:
-        fq1 = "data/reads/{id}_1.fastq",
-        fq2 = "data/reads/{id}_2.fastq"
+        fq1 = "data/test_reads/{id}_1.fastq",
+        fq2 = "data/test_reads/{id}_2.fastq"
     output:
         fq1 = "data/trimmed/{id}_1.fastq.gz",
         fq2 = "data/trimmed/{id}_2.fastq.gz",
@@ -90,7 +75,7 @@ rule trimming:
     log:
         "logs/trimmomatic/{id}.log"
     threads:
-        32
+        1 #32 CHANGED
     conda:
         "envs/trimmomatic.yaml"
     shell:
@@ -118,7 +103,7 @@ rule qc:
     log:
         "logs/fastqc/{id}.log"
     threads:
-         32
+         1 #32 CHANGED
     conda:
         "envs/fastqc.yaml"
     shell:
@@ -138,7 +123,7 @@ rule kallisto_index:
                     id=simple_id),
         transcriptome = rules.create_transcriptome.output.seqs
     output:
-        idx = config['path']['kallisto_index']
+        idx = config['path_test']['kallisto_index']
     params:
         kmer = "31"
     log:
@@ -168,7 +153,7 @@ rule kallisto_quant:
     log:
         "logs/kallisto/{id}.log"
     threads:
-        8
+        1 #32 CHANGED
     conda:
         "envs/kallisto.yaml"
     shell:
@@ -190,7 +175,7 @@ rule combine_gene_quantification:
     input:
         datasets = expand(
             "results/kallisto/{id}/abundance.tsv",
-            id=config['datasets'].keys()
+            id=config['datasets_test'].keys()
         ),
         map = rules.generate_transcriptID_geneName.output.map
     output:
@@ -207,18 +192,18 @@ rule combine_gene_quantification:
 rule star_index:
     """ Generates the genome index for STAR """
     input:
-        fasta = config["path"]["genome"],
-        gtf = config["path"]['annotation']
+        fasta = config["path_test"]["genome"],
+        gtf = config["path_test"]['annotation']
     output:
-        chrNameLength = "data/reference/star_index/chrNameLength.txt"
+        chrNameLength = "data/test_reference/star_index/chrNameLength.txt"
     params:
-        dir = config['path']['star_index']
+        dir = config['path_test']['star_index']
     log:
         "logs/STAR/index.log"
     conda:
         "envs/star.yaml"
     threads:
-        8
+        1 #8 CHANGED
     shell:
         "mkdir -p {params.dir} && "
         "STAR --runThreadN {threads} "
@@ -227,6 +212,7 @@ rule star_index:
         "--genomeFastaFiles {input.fasta} "
         "--sjdbGTFfile {input.gtf} "
         "--sjdbOverhang 99"
+        "--genomeSAindexNbases 12 " #CHANGED to remove !!
         "&> {log}"
 
 
@@ -239,12 +225,12 @@ rule star_alignReads:
     output:
         bam = "results/STAR/{id}/Aligned.sortedByCoord.out.bam"
     params:
-        index = config['path']['star_index'],
+        index = config['path_test']['star_index'],
         output_dir = "results/STAR/{id}/"
     log:
         "logs/STAR/{id}.log"
     threads:
-        32
+        1 #32 CHANGED
     conda:
         "envs/star.yaml"
     shell:
@@ -268,3 +254,6 @@ rule star_alignReads:
 
 # include coco
 include: "rules/coco.smk"
+
+# include DESeq
+# include: "rules/DESeq2.smk"

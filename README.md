@@ -47,3 +47,8 @@ If the cluster nodes do not have internet access, one can run the tasks requirin
 ```bash
 snakemake all_downloads --use-conda --cores=$CORES
 ```
+
+To look at your entire workflow in svg, use the following command :
+```bash
+snakemake --rulegraph | dot -Tsvg | display
+``` 

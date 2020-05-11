@@ -17,8 +17,10 @@ rule coco_cb:
         bedgraph = "results/CoCo/{id}.bedgraph"
     conda:
         "../envs/coco.yaml"
+    threads:
+        32
     shell:
-        "coco cb -u -t 31 -c 2500000 {input.bam} "
+        "coco cb -u -t {threads} -c 2500000 {input.bam} "
         "{output.bedgraph} {input.chrLength}"
 
 
