@@ -1,9 +1,7 @@
-import os
-
 configfile: "config.json"
 
-original_name = list(config['datasets'].keys())
-simple_id = list(config['datasets'].values())
+original_name = list(config['datasets_colombo'].values())
+simple_id = list(config['datasets_colombo'].keys())
 counts = ['est_counts', 'transcript_est_counts']
 
 rule all:
@@ -13,8 +11,27 @@ rule all:
         start_out = expand("logs/STAR/{id}.log", id=simple_id),
         transcript_tpm = "results/kallisto/transcript_tpm.tsv",
         transcript_est_counts = "results/kallisto/transcript_est_counts.tsv",
-        bedgraph = expand("results/CoCo/{id}.bedgraph", id=simple_id),
-        clean_bw = expand("results/CoCo/bigwig/{id}.bw", id=simple_id)
+        # DESeq2_genes = "logs/DESeq2/genes.log",
+        # DESeq2_transcripts = "logs/DESeq2/transcripts.log",
+        rename = "logs/DESeq2/rename.tok",
+        bw = expand("results/genomCov/bigwig/{id}.bw", id=simple_id)
+
+
+rule rename_files:
+    input:
+        fastq = expand("data/reads/{original}_{pair}.fastq",
+                    original=original_name, pair=[1, 2])
+    output:
+        new_name = expand("data/reads/{id}_{pair}.fastq",
+                    id=simple_id, pair=[1, 2])
+    run:
+        for id, original in config['datasets_colombo'].items():
+            for num in [1, 2]:
+                old = "data/reads/{}_{}.fastq".format(original, num)
+                new_ = "data/reads/{}_{}.fastq".format(id, num)
+
+                print(old, new_)
+                # os.rename(old, new_)
 
 
 rule download_genome:
@@ -27,22 +44,6 @@ rule download_genome:
         "wget --quiet -O {output.genome}.gz {params.link} && "
         "gzip -d {output.genome}.gz "
 
-
-rule rename_files:
-    input:
-        fastq = expand("data/reads/{original_name}_{pair}.fastq",
-                    original_name=original_name, pair=[1, 2])
-    output:
-        new_name = expand("data/reads/{id}_{pair}.fastq",
-                    id=simple_id, pair=[1, 2])
-    run:
-        for original, id in config['datasets'].items():
-            for num in [1, 2]:
-                old = "data/reads/{}_{}.fastq".format(original, num)
-                new_ = "data/reads/{}_{}.fastq".format(id, num)
-
-                os.rename(old, new_)
-                
 
 rule create_transcriptome:
     """ Uses gffread to generate a transcriptome """
@@ -75,16 +76,12 @@ rule generate_transcriptID_geneName:
 rule trimming:
     """ Trims the FASTQ files using Trimmomatic """
     input:
-        fq1 = "data/reads/{id}_1.fastq",
-        fq2 = "data/reads/{id}_2.fastq"
+        fq = "data/reads/{id}.fastq",
     output:
-        fq1 = "data/trimmed/{id}_1.fastq.gz",
-        fq2 = "data/trimmed/{id}_2.fastq.gz",
-        unpaired_fq1 = "data/trimmed/{id}_1.unpaired.fastq.gz",
-        unpaired_fq2 = "data/trimmed/{id}_2.unpaired.fastq.gz"
+        fq = "data/trimmed/{id}.fastq.gz",
     params:
         options = [
-            "ILLUMINACLIP:data/adapters.fa:2:30:10", "LEADING:5",
+            "ILLUMINACLIP:adapters.fa:2:30:10", "LEADING:5",
             "TRAILING:5", "MINLEN:45"
         ]
     log:
@@ -94,12 +91,11 @@ rule trimming:
     conda:
         "envs/trimmomatic.yaml"
     shell:
-        "trimmomatic PE "
+        "trimmomatic SE "
         "-threads {threads} "
         "-phred33 "
-        "{input.fq1} {input.fq2} "
-        "{output.fq1} {output.unpaired_fq1}  "
-        "{output.fq2} {output.unpaired_fq2} "
+        "{input.fq} "
+        "{output.fq} "
         "{params.options} "
         "&> {log}"
 
@@ -107,12 +103,9 @@ rule trimming:
 rule qc:
     """ Assess the FASTQ quality using FastQC """
     input:
-        fq1 = rules.trimming.output.fq1,
-        fq2 = rules.trimming.output.fq2,
-        unpaired_fq1 = rules.trimming.output.unpaired_fq1,
-        unpaired_fq2 = rules.trimming.output.unpaired_fq2,
+        fq = rules.trimming.output.fq
     output:
-        fq1_out = "data/qc/{id}_1_fastqc.html"
+        fq_out = "data/qc/{id}_fastqc.html"
     params:
         out_dir = "data/qc"
     log:
@@ -126,15 +119,14 @@ rule qc:
         "--outdir {params.out_dir} "
         "--format fastq "
         "--threads {threads} "
-        "{input.fq1} {input.fq2} "
-        "{input.unpaired_fq1} {input.unpaired_fq2} "
+        "{input.fq} "
         "&> {log}"
 
 
 rule kallisto_index:
     """ Generates the transcriptome index for Kallisto """
     input:
-        qc = expand("data/qc/{id}_1_fastqc.html",
+        qc = expand("data/qc/{id}_fastqc.html",
                     id=simple_id),
         transcriptome = rules.create_transcriptome.output.seqs
     output:
@@ -157,8 +149,7 @@ rule kallisto_quant:
     """ Generates counts using Kallisto pseudo-alignment """
     input:
         idx = rules.kallisto_index.output.idx,
-        fq1 = rules.trimming.output.fq1,
-        fq2 = rules.trimming.output.fq2
+        fq = rules.trimming.output.fq,
     output:
         quant = "results/kallisto/{id}/abundance.tsv",
         h5 = "results/kallisto/{id}/abundance.h5",
@@ -168,7 +159,7 @@ rule kallisto_quant:
     log:
         "logs/kallisto/{id}.log"
     threads:
-        8
+        32
     conda:
         "envs/kallisto.yaml"
     shell:
@@ -178,7 +169,8 @@ rule kallisto_quant:
         "--output-dir={params.outdir} "
         "--bootstrap-samples={params.bootstrap} "
         "--threads={threads} "
-        "{input.fq1} {input.fq2} "
+        "--single -l 200 -s 20 "
+        "{input.fq} "
         "&> {log}"
 
 
@@ -188,9 +180,9 @@ rule combine_gene_quantification:
     processing.
     """
     input:
-        datasets = expand(
+        datasets_colombo = expand(
             "results/kallisto/{id}/abundance.tsv",
-            id=config['datasets'].keys()
+            id=config['datasets_colombo'].keys()
         ),
         map = rules.generate_transcriptID_geneName.output.map
     output:
@@ -210,7 +202,7 @@ rule star_index:
         fasta = config["path"]["genome"],
         gtf = config["path"]['annotation']
     output:
-        chrNameLength = "data/reference/star_index/chrNameLength.txt"
+        chrNameLength = "data/references/star_index/chrNameLength.txt"
     params:
         dir = config['path']['star_index']
     log:
@@ -218,7 +210,7 @@ rule star_index:
     conda:
         "envs/star.yaml"
     threads:
-        8
+        32
     shell:
         "mkdir -p {params.dir} && "
         "STAR --runThreadN {threads} "
@@ -234,8 +226,7 @@ rule star_alignReads:
     """ Generates a bam file using STAR """
     input:
         idx = rules.star_index.output,
-        fq1 = rules.trimming.output.fq1,
-        fq2 = rules.trimming.output.fq2
+        fq = rules.trimming.output.fq,
     output:
         bam = "results/STAR/{id}/Aligned.sortedByCoord.out.bam"
     params:
@@ -250,7 +241,7 @@ rule star_alignReads:
     shell:
         "STAR --runMode alignReads "
         "--genomeDir {params.index} "
-        "--readFilesIn {input.fq1} {input.fq2}  "
+        "--readFilesIn {input.fq} "
         "--runThreadN {threads} "
         "--readFilesCommand zcat "
         "--outReadsUnmapped Fastx "
@@ -266,5 +257,8 @@ rule star_alignReads:
         "--alignEndsProtrude 5 ConcordantPair "
         "&> {log}"
 
-# include coco
-include: "rules/coco.smk"
+# include DESeq
+# include: "rules/DESeq2.smk"
+
+# include genomeCov -bg
+include: "rules/genomCov.smk"
