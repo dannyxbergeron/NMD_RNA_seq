@@ -2,24 +2,27 @@ log <- file(snakemake@log[[1]], open="wt")
 sink(log)
 sink(log, type="message")
 
+# library("tximportData")
+library("tximport")
+library("readr")
 library("DESeq2")
 
-#Loading count matrix from file, converting to integer
-counts <- read.table(
-	snakemake@input[["counts"]], header=TRUE,
-	row.names=snakemake@params[["count_type"]], check.names=FALSE
-)
+
+files <- snakemake@input[["counts"]]
+names(files) <- snakemake@params[["names"]]
+kallisto_counts <- tximport(files, type = "kallisto", txOut = TRUE)
+# print(kallisto_counts$counts)
+
+counts = kallisto_counts$counts
 
 counts <- as.matrix(counts)
 mode(counts) <- "integer"
-
 
 # Loading samples information from file.
 all_samples <- read.table(
     snakemake@input[["samples"]], header=TRUE,
     row.names="sample", check.names=FALSE
 )
-
 
 dir.create(snakemake@output[["results"]], showWarnings=FALSE)
 # Looping through the samples

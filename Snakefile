@@ -11,11 +11,10 @@ rule all:
         transcript_tpm = "results/kallisto/transcript_tpm.tsv",
         transcript_est_counts = "results/kallisto/transcript_est_counts.tsv",
         bedgraph = expand("results/CoCo/{id}.bedgraph", id=simple_id),
-        clean_bg = expand("results/CoCo/{id}.bw", id=simple_id),
-        counts = expand('results/kallisto/{counts}.tsv',
-                        counts=counts),
-        deseq_log = expand("logs/DESeq2/{counts}.log",
-                        counts=counts)
+        clean_bg = expand("results/CoCo/bigwig/{id}.bw", id=simple_id),
+        DESeq2_genes = "logs/DESeq2/genes.log",
+        DESeq2_transcripts = "logs/DESeq2/transcripts.log",
+        rename = "logs/DESeq2/rename.tok"
 
 
 
@@ -146,7 +145,8 @@ rule kallisto_quant:
         fq1 = rules.trimming.output.fq1,
         fq2 = rules.trimming.output.fq2
     output:
-        quant = "results/kallisto/{id}/abundance.tsv"
+        quant = "results/kallisto/{id}/abundance.tsv",
+        h5 = "results/kallisto/{id}/abundance.h5",
     params:
         bootstrap = "50",
         outdir = "results/kallisto/{id}"
@@ -195,7 +195,7 @@ rule star_index:
         fasta = config["path_test"]["genome"],
         gtf = config["path_test"]['annotation']
     output:
-        "logs/STAR/index.log"
+        chrNameLength = "data/test_reference/star_index/chrNameLength.txt"
     params:
         dir = config['path_test']['star_index']
     log:
@@ -208,11 +208,11 @@ rule star_index:
         "mkdir -p {params.dir} && "
         "STAR --runThreadN {threads} "
         "--runMode genomeGenerate "
-        "--genomeDir {output} "
+        "--genomeDir {params.dir} "
         "--genomeFastaFiles {input.fasta} "
         "--sjdbGTFfile {input.gtf} "
         "--sjdbOverhang 99"
-        "--genomeSAindexNbases 12" #CHANGED to remove !!
+        "--genomeSAindexNbases 12 " #CHANGED to remove !!
         "&> {log}"
 
 
@@ -244,7 +244,7 @@ rule star_alignReads:
         "--outStd Log "
         "--outSAMunmapped None "
         "--outSAMtype BAM SortedByCoordinate "
-        "--outFileNamePrefix {param.output_dir} "
+        "--outFileNamePrefix {params.output_dir} "
         "--outFilterScoreMinOverLread 0.3 "
         "--outFilterMatchNminOverLread 0.3 "
         "--outFilterMultimapNmax 100 "

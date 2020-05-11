@@ -39,7 +39,7 @@ rule convert_bw:
         clean_bg = "results/CoCo/clean_{id}.bedgraph",
         new_chrLength = "data/test_reference/star_index/chrNameLength_modif.txt"
     output:
-        bw = "results/CoCo/{id}.bw"
+        bw = "results/CoCo/bigwig/{id}.bw"
     conda:
         "../envs/bedgraphtobigwig.yaml"
     shell:
