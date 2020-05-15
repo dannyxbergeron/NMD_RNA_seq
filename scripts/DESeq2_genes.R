@@ -21,9 +21,14 @@ all_samples <- read.table(
 )
 
 dir.create(snakemake@output[["results"]], showWarnings=FALSE)
+
 # Looping through the samples
-for (cnd1 in c("A")) {
-	for (cnd2 in c("B")) {
+conditions = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J")
+for (i in 1:9) {
+	for (j in (i+1):10) {
+
+		cnd1 = conditions[i]
+		cnd2 = conditions[j]
 
 		exp <- sprintf("%s-%s", cnd1, cnd2)
 		base <- sprintf("%s", cnd1)

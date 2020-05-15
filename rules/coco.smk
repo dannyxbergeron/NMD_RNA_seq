@@ -36,10 +36,18 @@ rule keep_primary_chr:
     script:
         "../scripts/clean_bg.py"
 
+rule sort_bg:
+    input:
+        bg = "results/CoCo/clean_{id}.bedgraph"
+    output:
+        bg = "results/CoCo/sorted_clean_{id}.bedgraph"
+    shell:
+        "sort -k1,1 -k2,2n {input.bg} | sed 's/chrM/chrMT/g' > {output.bg}"
+
 rule convert_bw:
     input:
-        clean_bg = "results/CoCo/clean_{id}.bedgraph",
-        new_chrLength = "data/reference/star_index/chrNameLength_modif.txt"
+        clean_bg = "results/CoCo/sorted_clean_{id}.bedgraph",
+        new_chrLength = "data/references/star_index/chrNameLength_modif.txt"
     output:
         bw = "results/CoCo/bigwig/{id}.bw"
     conda:

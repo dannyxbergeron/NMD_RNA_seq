@@ -7,7 +7,7 @@ rule genomCov:
         "../envs/coco.yaml"
     shell:
          'TmpScale=$(bc <<< "scale=6;1000000/$(samtools view -f 0 -c {input.bam})") && '
-         'bedtools genomecov -bg -ibam {input.bam} -scale $TmpScale '
+         'bedtools genomecov -bg -split -ibam {input.bam} -scale $TmpScale '
          '| sort -k1,1 -k2,2n > {output.bedgraph}'
 
 

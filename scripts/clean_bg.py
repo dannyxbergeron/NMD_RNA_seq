@@ -9,8 +9,8 @@ for infile, outfile in zip(input_files, output_files):
 
     df = pd.read_csv(infile, sep='\t', names=colnames, skiprows=1, dtype={'chr': str})
 
-    df.chr = 'chr' + df.chr # CHANGED !! for genomeCov only !!!
-    
+    # df.chr = 'chr' + df.chr # CHANGED !! for genomeCov only !!!
+
     mask = df.chr.isin(chr)
     clean_df = df.loc[mask]
 
