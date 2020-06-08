@@ -39,8 +39,8 @@ def trans_of_genes(file):
 
 def load_process_colombo(corresp_dict, GOI):
 
-    THRES_MIN = 5
-    MIN_RATIO = 1
+    THRES_MIN = 10
+    MIN_RATIO = 2.5
 
     file = '/home/danx/Documents/projects/NMD_RNA_seq/results/colombo/kallisto/NAME_CORRECTED_transcript_tpm.tsv'
     df = pd.read_csv(file, sep='\t')
@@ -113,7 +113,7 @@ def graph_trans(transcript_df, yaxix_label):
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
     axes[0].set_ylabel(yaxix_label, fontsize=12)
-    axes[0].set_title('Transcripts relative changes', fontsize=15)
+    axes[0].set_title('Lykke 2014 - One replicate', fontsize=15)
     axes[0].set_xticks(x)
     axes[0].set_xticklabels(labels)
     if len(transcript_df) != 0:
@@ -146,7 +146,7 @@ def process(transcript_df):
 
     filter_df = transcript_df.copy(deep=True)
     filter_df['mean'] = filter_df.mean(axis=1)
-    filter_df = filter_df.loc[filter_df['mean'] > 2]
+    filter_df = filter_df.loc[filter_df['mean'] > 10]
 
     filter_df['max'] = filter_df[['SMG6-XRN1', 'UPF1-XRN1']].values.max(axis=1)
     filter_df['min'] = filter_df[['XRN1', 'ctrl']].values.min(axis=1)
@@ -182,7 +182,7 @@ def graph_col(df, ax, fig):
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('TPM', fontsize=12)
-    ax.set_title('Transcripts relative changes', fontsize=15)
+    ax.set_title('Colombo 2017 - Average of 3 replicates', fontsize=15)
     ax.set_xticks(x)
     ax.set_xticklabels(df.index)
     if len(df) != 0:
@@ -205,7 +205,7 @@ def main():
 
     corresp_dict = trans_of_genes(ref)
 
-    GOI = 'RPL17'
+    GOI = 'EIF4A2'
 
     transcript_df = load_df(transcript_tpm, corresp_dict, GOI)
 

@@ -26,9 +26,13 @@ all_samples <- read.table(
 
 dir.create(snakemake@output[["results"]], showWarnings=FALSE)
 # Looping through the samples
-conditions = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J")
-for (i in 1:9) {
-	for (j in (i+1):10) {
+# conditions = c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J")
+# for (i in 1:9) {
+# 	for (j in (i+1):10) {
+
+conditions = c("A", "B") #JUST FOR TEST!!!!!!!!!!!!!!!!!!!
+for (i in 1:1) {
+	for (j in (i+1):2) {
 
 		cnd1 = conditions[i]
 		cnd2 = conditions[j]

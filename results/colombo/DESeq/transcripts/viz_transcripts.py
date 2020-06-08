@@ -3,6 +3,7 @@ from collections import defaultdict
 import pandas as pd
 
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
 
@@ -93,7 +94,11 @@ def prepare_fig(ref_df_, sno_in_host, gathered_trans):
     gene_name = gene.at[0, 'gene_name']
 
     # Create figure and axes
-    fig, axes = plt.subplots(2)
+    axes = []
+    gs = gridspec.GridSpec(2, 1, height_ratios=[2, 1], wspace=0.015, hspace=0.3, bottom=0.05)
+    fig = plt.figure()
+    axes.append(plt.subplot(gs[0]))
+    axes.append(plt.subplot(gs[1]))
 
     offset = 0.05 * end
 
@@ -113,6 +118,8 @@ def prepare_fig(ref_df_, sno_in_host, gathered_trans):
                                  & (ref_df['feature'] == 'transcript')
                                  & (ref_df['transcript_biotype'] == 'protein_coding')]
             transcripts = sorted(list(tsl1_df.transcript_id))[::-1]
+            # CHANGED !!!!!!!!!!! to get only one protein_coding transcript for EIF4A2
+            transcripts = ['ENST00000440191']
 
         axes[i].set_xlim(start - offset/2, end + offset/2)
 

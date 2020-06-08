@@ -183,40 +183,42 @@ def main():
     # ]
 
     # pos RPL genes
-    genes = [
-        'RPS2',
-        'RPL10',
-        'RPL27A',
-        'RPL5',
-        'RPL23A',
-        'RPL17',
-        'RPL32',
-        'RPL30',
-        'RPL13A',
-        'RPL17',
-        'RPL17',
-        'RPL3',
-        'RPL5',
-        'RPS3',
-        'RPLP2',
-        'RPSA',
-        'RPL23A',
-        'RPL18A',
-        'RPL12',
-        'RPL32P3',
-        'RPS8',
-        'RPL21',
-        'RPS20',
-        'RPS2',
-        'RPS12',
-        'RPL7A',
-        'RPL27A',
-        'RPL3',
-        'RPL4',
-        'RPL23',
-        'RPS8',
-        'RPS3A'
-    ]
+    # genes = [
+    #     'RPS2',
+    #     'RPL10',
+    #     'RPL27A',
+    #     'RPL5',
+    #     'RPL23A',
+    #     'RPL17',
+    #     'RPL32',
+    #     'RPL30',
+    #     'RPL13A',
+    #     'RPL17',
+    #     'RPL17',
+    #     'RPL3',
+    #     'RPL5',
+    #     'RPS3',
+    #     'RPLP2',
+    #     'RPSA',
+    #     'RPL23A',
+    #     'RPL18A',
+    #     'RPL12',
+    #     'RPL32P3',
+    #     'RPS8',
+    #     'RPL21',
+    #     'RPS20',
+    #     'RPS2',
+    #     'RPS12',
+    #     'RPL7A',
+    #     'RPL27A',
+    #     'RPL3',
+    #     'RPL4',
+    #     'RPL23',
+    #     'RPS8',
+    #     'RPS3A'
+    # ]
+
+    genes = ['GNL3']
 
     ref_df = ref_df.loc[ref_df.gene_name.isin(genes)]
 
