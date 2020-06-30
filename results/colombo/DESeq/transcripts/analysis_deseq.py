@@ -218,7 +218,7 @@ def main():
     #     'RPS3A'
     # ]
 
-    genes = ['GNL3']
+    genes = ['EIF4A2']
 
     ref_df = ref_df.loc[ref_df.gene_name.isin(genes)]
 
